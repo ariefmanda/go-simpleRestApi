@@ -1,34 +1,22 @@
 package main
+
 import (
-  "encoding/json"
-  "io"
-  "net/http"
-  "time"
+	"log"
+	"net/http"
+	"./controllers"
+	"github.com/gorilla/mux"
+	"./models"
 )
 
-type Todo struct {
-    Name      string
-    Completed bool
-    Due       time.Time
-}
-
-type Todos []Todo
-
-func todo(w http.ResponseWriter, r *http.Request)  {
-  todos := Todos{
-    Todo{Name: "Write presentation"},
-    Todo{Name: "Host meetup"},
-  }
-  json.NewEncoder(w).Encode(todos)
-}
-
-func hello(w http.ResponseWriter, r *http.Request) {
-  io.WriteString(w, "Hello world!")
-}
-
 func main() {
-  mux := http.NewServeMux()
-  mux.HandleFunc("/", hello)
-  mux.HandleFunc("/todo", todo)
-  http.ListenAndServe(":8000", mux)
+	models.Connect()
+	r := mux.NewRouter()
+	r.HandleFunc("/", controllers.AllMoviesEndPoint).Methods("GET")
+	r.HandleFunc("/", controllers.CreateMovieEndPoint).Methods("POST")
+	r.HandleFunc("/{id}", controllers.UpdateMovieEndPoint).Methods("PUT")
+	r.HandleFunc("/{id}", controllers.DeleteMovieEndPoint).Methods("DELETE")
+	r.HandleFunc("/{id}", controllers.FindMovieEndpoint).Methods("GET")
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		log.Fatal(err)
+	}
 }
